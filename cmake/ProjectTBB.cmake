@@ -3,21 +3,44 @@ include(ExternalProject)
 set(TBB_LIB_SUFFIX a)
 if (APPLE)
     set(ENABLE_STD_LIB stdlib=libc++)
+    set(TBB_LIB_SUFFIX dylib)
+endif()
+
+if (APPLE)
+    set(SED_CMMAND sed -i .bkp)
+    set(COMPILER_FLAGS "-Wno-defaulted-function-deleted -Wno-shadow")
+else()
+    set(SED_CMMAND sed -i)
+    set(COMPILER_FLAGS "")
+endif()
+
+if(APPLE AND ${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "arm64")
+    set(FIXED_MARCH_TYPE armv8)
+else()
+    set(FIXED_MARCH_TYPE ${MARCH_TYPE})
 endif()
 
 ExternalProject_Add(tbb
     PREFIX ${CMAKE_SOURCE_DIR}/deps
     DOWNLOAD_NO_PROGRESS 1
-    DOWNLOAD_NAME oneTBB-2020.3.tar.gz
-    URL https://codeload.github.com/oneapi-src/oneTBB/tar.gz/v2020.3
-        https://raw.githubusercontent.com/FISCO-BCOS/LargeFiles/master/libs/oneTBB-2020.3.tar.gz
-    URL_HASH SHA256=ebc4f6aa47972daed1f7bf71d100ae5bf6931c2e3144cf299c8cc7d041dca2f3
+    DOWNLOAD_NAME oneTBB-2020.1.tar.gz
+#    URL https://codeload.github.com/oneapi-src/oneTBB/tar.gz/v2020.3
+#        https://raw.githubusercontent.com/FISCO-BCOS/LargeFiles/master/libs/oneTBB-2020.3.tar.gz
+#    URL  https://github.com/oneapi-src/oneTBB/releases/download/v2021.1.1/oneapi-tbb-2021.1.1-mac.tgz
+    URL file://${THIRD_PARTY_ROOT}/LargeFiles/libs/oneTBB-2020.1.tar.gz
+#    URL_HASH SHA256=ebc4f6aa47972daed1f7bf71d100ae5bf6931c2e3144cf299c8cc7d041dca2f3
+    URL_HASH SHA256=7c96a150ed22bc3c6628bc3fef9ed475c00887b26d37bca61518d76a56510971
     BUILD_IN_SOURCE 1
     LOG_CONFIGURE 1
     LOG_BUILD 1
     LOG_INSTALL 1
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND make extra_inc=big_iron.inc ${ENABLE_STD_LIB}
+    # BUILD_COMMAND make extra_inc=big_iron.inc ${ENABLE_STD_LIB}
+    PATCH_COMMAND ${SED_CMMAND} -e "39s/^//p" ./build/macos.inc
+    PATCH_COMMAND && ${SED_CMMAND} -e "39s#^.*#ifeq\ \(\$\(shell\ /usr/sbin/sysctl\ -n\ hw.machine\),arm64\)\\nexport\ arch:=arm64\\nelse#g" ./build/macos.inc
+    PATCH_COMMAND && ${SED_CMMAND} -e "49s/^//p" ./build/macos.inc
+    PATCH_COMMAND && ${SED_CMMAND} -e "49s#^.*#endif#" ./build/macos.inc
+    BUILD_COMMAND make -j2 ${ENABLE_STD_LIB} tbb
     INSTALL_COMMAND bash -c "/bin/cp -f ./build/*_release/libtbb.${TBB_LIB_SUFFIX}* ${CMAKE_SOURCE_DIR}/deps/lib/"
     BUILD_BYPRODUCTS ${CMAKE_SOURCE_DIR}/deps/lib/libtbb.${TBB_LIB_SUFFIX}
 )
