@@ -3082,7 +3082,7 @@
 		<Unit filename="/Users/chenquan/Workspace/cpp/FISCO-BCOS/cmake/ProjectEVMC.cmake">
 			<Option virtualFolder="CMake Files\cmake\"/>
 		</Unit>
-		<Unit filename="/Users/chenquan/Workspace/cpp/FISCO-BCOS/cmake/ProjectEVMONE.cmake">
+		<Unit filename="/Users/chenquan/Workspace/cpp/FISCO-BCOS/cmake/ProjectEVMONE2.cmake">
 			<Option virtualFolder="CMake Files\cmake\"/>
 		</Unit>
 		<Unit filename="/Users/chenquan/Workspace/cpp/FISCO-BCOS/cmake/ProjectGroupSig.cmake">
